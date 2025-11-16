@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="Azladin Digital Healthcare Detail">
+    <meta property="og:description" content="Check out this Rive animation hosted on GitHub Pages!">
+    <meta property="og:image" content="https://raw.githubusercontent.com/kumessi1997/rive-host/main/thumbnail.png">
+    <meta property="og:url" content="https://raw.githubusercontent.com/kumessi1997/rive-host/main/thumbnail.png">
+    <meta property="og:type" content="website">
+    <title>Rive Animation</title>
+    <script src="https://unpkg.com/@rive-app/webgl2"></script>
+    <style>
+        /* Reset and base styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Make the body take full screen and center the canvas */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            overflow: hidden; /* Prevent scrollbars */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Responsive canvas container */
+        #canvasContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Style the canvas to be responsive */
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            position: relative;
+            z-index: 1;
+            mix-blend-mode: normal;
+            /* Maintain aspect ratio while being responsive */
+            object-fit: contain;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            body {
+                /* Ensure proper mobile viewport handling */
+                -webkit-text-size-adjust: 100%;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            canvas {
+                /* Optimize for mobile screens */
+                width: 100vw;
+                height: 100vh;
+                object-fit: cover;
+            }
+        }
+
+        /* Tablet optimizations */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            canvas {
+                width: 100vw;
+                height: 100vh;
+                object-fit: contain;
+            }
+        }
+
+        /* Desktop optimizations */
+        @media (min-width: 1025px) {
+            canvas {
+                width: 100vw;
+                height: 100vh;
+                object-fit: contain;
+            }
+        }
+
+        /* Landscape orientation adjustments */
+        @media (orientation: landscape) and (max-height: 500px) {
+            canvas {
+                width: 100vw;
+                height: 100vh;
+                object-fit: cover;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvasContainer">
+        <canvas id="riveCanvas"></canvas>
+    </div>
+
+    <script>
+        let r; // Declare rive instance globally for resize handling
+        
+        // Function to get optimal canvas dimensions
+        function getOptimalCanvasSize() {
+            const container = document.getElementById('canvasContainer');
+            const containerRect = container.getBoundingClientRect();
+            
+            // Get device pixel ratio for crisp rendering
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Calculate optimal size based on container and device capabilities
+            const width = Math.min(containerRect.width, window.innerWidth);
+            const height = Math.min(containerRect.height, window.innerHeight);
+            
+            return {
+                width: width * dpr,
+                height: height * dpr,
+                displayWidth: width,
+                displayHeight: height
+            };
+        }
+
+        // Function to resize canvas and Rive animation
+        function resizeCanvas() {
+            if (!r) return;
+            
+            const { width, height, displayWidth, displayHeight } = getOptimalCanvasSize();
+            const canvas = document.getElementById("riveCanvas");
+            
+            // Set canvas display size
+            canvas.style.width = displayWidth + 'px';
+            canvas.style.height = displayHeight + 'px';
+            
+            // Set canvas internal size (for crisp rendering)
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Resize Rive animation
+            r.resizeDrawingSurfaceToCanvas();
+        }
+
+        // Load Rive Animation
+        r = new rive.Rive({
+            src: "fis_health.riv", // Ensure this file is in the same directory or provide the correct path
+            canvas: document.getElementById("riveCanvas"),
+            autoplay: true, // Start animation automatically
+            autoBind: true,
+            stateMachines: "State Machine 1", // Match your state machine name
+            artboard: "Main", // Specify the artboard
+            onLoad: () => {
+                console.log("Rive animation loaded successfully");
+                // Initial resize after load
+                resizeCanvas();
+            },
+            onLoadError: (err) => {
+                console.error("Error loading Rive animation:", err);
+            }
+        });
+
+        // Debounced resize handler for better performance
+        let resizeTimeout;
+        function handleResize() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                resizeCanvas();
+            }, 100); // Debounce resize events
+        }
+
+        // Event listeners for responsive behavior
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', () => {
+            // Handle orientation changes with a slight delay
+            setTimeout(() => {
+                resizeCanvas();
+            }, 200);
+        });
+
+        // Handle visibility change (when tab becomes active/inactive)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && r) {
+                // Redraw when tab becomes visible
+                setTimeout(() => {
+                    resizeCanvas();
+                }, 100);
+            }
+        });
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            resizeCanvas();
+        });
+    </script>
+
+</body>
+</html>
